@@ -25,12 +25,17 @@ def main():
 		sys.stderr.write ("Could not connect to database\n")
 		os._exit(2)
 	try:
-		# NOTE: I don't have multiple revisions per node in drupal
-		# NOTE: I don't think pyblosxom can have different teaser per item, so we only use the full body
-		query = "SELECT node.nid, url_alias.dst, node.title, node.created, node.changed, node_revisions.body \
+		# I don't have multiple revisions per node in drupal
+		# I don't think pyblosxom can have different teaser per item, so we only use the full body
+		# I use tagadelic with fixed tags.  we ignore tag weights and assocations between tags
+		query = "SELECT node.nid, url_alias.dst, node.title, node.created, node.changed, node_revisions.body, GROUP_CONCAT(term_data.name) \
 		         FROM node JOIN url_alias ON url_alias.src = CONCAT ('node/', node.nid) \
 			 JOIN node_revisions on node_revisions.nid = node.nid \
-			 WHERE type = 'blog' AND status = 1 ORDER BY CREATED ASC"
+			 JOIN term_node ON term_node.nid = node.nid \
+			 JOIN term_data ON term_data.tid = term_node.tid \
+			 WHERE type = 'blog' AND status = 1 \
+			 GROUP BY node.nid \
+			 ORDER BY CREATED ASC"
 		cursor.execute(query)
         except Exception, e:
 		sys.stderr.write("Could not execute query: %s:\n%s\n" % (query, str(e)))
@@ -49,6 +54,7 @@ def main():
 			print ("\tWriting to %s" % file_path)
 			file = open(file_path, 'w')
 			file.write('%s\n' % row[2])
+			file.write('# tags %s\n' % row[6])
 			file.write (row[5])
 			file.close()
 		except Exception, e:
