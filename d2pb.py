@@ -2,6 +2,7 @@
 import optparse
 import sys, os
 import MySQLdb
+import subprocess
 
 def main():
 	p = optparse.OptionParser()
@@ -28,6 +29,7 @@ def main():
 		# I don't have multiple revisions per node in drupal
 		# I don't think pyblosxom can have different teaser per item, so we only use the full body
 		# I use tagadelic with fixed tags.  we ignore tag weights and assocations between tags
+		# Embedding php code ('<?php ... ?>' or '<% ... %>') like what drupal allows obviously won't work very well. Luckily I never used that feature
 		query = "SELECT node.nid, url_alias.dst, node.title, node.created, node.changed, node_revisions.body, GROUP_CONCAT(term_data.name) \
 		         FROM node JOIN url_alias ON url_alias.src = CONCAT ('node/', node.nid) \
 			 JOIN node_revisions on node_revisions.nid = node.nid \
@@ -55,7 +57,12 @@ def main():
 			file = open(file_path, 'w')
 			file.write('%s\n' % row[2])
 			file.write('# tags %s\n' % row[6])
-			file.write (row[5])
+			# I've never used input format 2 (which allows almost no html) and format 1 is like format 3, but with stricter html tag allowance.
+			# I just assume we use format 3, this should be good enough.
+			# Perform drupalesque text processing
+			p = subprocess.Popen(['./text_filter.php'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+			output = p.communicate(row[5])[0]
+			file.write(output)
 			file.close()
 		except Exception, e:
 			sys.stderr.write ("Cannot write to %s:\n%s\n" % (file_path,str(e)))
