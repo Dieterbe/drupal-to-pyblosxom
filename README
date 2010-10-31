@@ -1,0 +1,22 @@
+== DEPENDENCIES ==
+* python2
+* mysql-python
+* Drupal 5 or any version with similar database schema
+
+== INTRO ==
+This assumes you run drupal on mysql
+converts:
+posts
+ignores:
+trackbacks (is there a sane way to do trackbacks anyway? maybe with mollom/akismet/..?)
+
+There's still a bunch of stuff to do, like comments, proper rendering (drupal has different output types etc)
+also: timestamps of posts
+
+== HOWTO ==
+
+* start with a clean drupal database: make sure there isn't too much spam in it etc.  session and cache tables can get big too
+DELETE FROM sessions WHERE timestamp < unix_timestamp(now()) -1000
+after this cleanup, you might want to optimize your tables aswell
+* backup your database and/or work on a copy
+* run `d2pb.py --help` for usage instructions
