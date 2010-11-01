@@ -24,6 +24,7 @@
 	include_once('drupalcode/bootstrap.inc');
 	include_once('drupalcode/unicode.inc');
 	include_once('drupalcode/filter.module');
+	$text = str_replace(array("\r\n", "\r"), "\n", $text);
 	$text = _filter_autop($text); // adds <br/>'s and <p>..</p> where appropriate
 	$text = _filter_url($text, -1); // expands urls/email address into real links
 	echo ($text);
