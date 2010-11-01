@@ -7,6 +7,15 @@
 	while(!feof($in)){
 		$text = $text . fgets($in, 4096);
 	}
+	// this is not perfect.  we should be able to do just `$text = check_markup($text)` but
+	// that requires querying the database for the real drupal filters etc, which goes a bit
+	// too far for me.
+	// the only real problem I've seen with this approach, is that:
+	// <a
+	// href="foo">foo</a>
+	// becomes: <a<br/>href="foo">foo</a>
+	// if you encounter that, fix it manually.  Or expand this tool to let the drupal code connect
+	// to the database...
 	// actually for most of the interesting work (_filter_autop()) we only need that function
 	// all the other deps are being dragged in for the url/email address 
 	// "expansion to real html links", which btw would be more appropriate
