@@ -7,12 +7,11 @@
 == INTRO ==
 This assumes you run drupal on mysql
 converts:
-posts
+posts (with tags for tags.py plugin, and publish date for Tim Gray's pymetatime plugin)
 ignores:
 trackbacks (is there a sane way to do trackbacks anyway? maybe with mollom/akismet/..?)
 
 There's still a bunch of stuff to do, like comments, proper rendering (drupal has different output types etc)
-also: timestamps of posts
 
 == HOWTO ==
 

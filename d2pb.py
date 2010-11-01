@@ -3,6 +3,7 @@ import optparse
 import sys, os
 import MySQLdb
 import subprocess
+import time
 
 def main():
 	p = optparse.OptionParser()
@@ -56,6 +57,8 @@ def main():
 			print ("\tWriting to %s" % file_path)
 			file = open(file_path, 'w')
 			file.write('%s\n' % row[2])
+			file.write('# pubdate %s\n' % time.strftime("%Y-%m-%d", time.localtime(row[3])))
+			file.write('# pubtime %s\n' % time.strftime("%H:%M:%S", time.localtime(row[3])))
 			file.write('# tags %s\n' % row[6])
 			# I've never used input format 2 (which allows almost no html) and format 1 is like format 3, but with stricter html tag allowance.
 			# I just assume we use format 3, this should be good enough.
