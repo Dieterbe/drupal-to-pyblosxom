@@ -15,10 +15,14 @@ posts, with:
 	just note that drupal can automatically break, pyblosxom doesn't,
 	so for posts without breakpoints, you might want to insert
 	breakpoints manually.
-ignores:
-trackbacks (is there a sane way to do trackbacks anyway? maybe with mollom/akismet/..?)
+	* comments TODO
+	* images TODO
+	* source code TODO
 
-There's still a bunch of stuff to do, like comments, proper rendering (drupal has different output types etc)
+ignores:
+	* trackbacks (is there a sane way to do trackbacks anyway?
+	maybe with mollom/akismet/..? if so we could add this feature)
+	* viewcount (i use google analytics)
 
 == HOWTO ==
 
