@@ -7,7 +7,14 @@
 == INTRO ==
 This assumes you run drupal on mysql
 converts:
-posts (with tags for tags.py plugin, and publish date for Tim Gray's pymetatime plugin)
+posts, with:
+	* tags for tags.py plugin
+	* publish date for Tim Gray's pymetatime plugin)
+	* breakpoints ('<!--break-->') are left intact,
+	you can use the readmore.py plugin;
+	just note that drupal can automatically break, pyblosxom doesn't,
+	so for posts without breakpoints, you might want to insert
+	breakpoints manually.
 ignores:
 trackbacks (is there a sane way to do trackbacks anyway? maybe with mollom/akismet/..?)
 
