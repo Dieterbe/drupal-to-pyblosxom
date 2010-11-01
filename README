@@ -2,6 +2,7 @@
 * python2
 * mysql-python
 * Drupal 5 or any version with similar database schema
+* php-cli
 
 == INTRO ==
 This assumes you run drupal on mysql
