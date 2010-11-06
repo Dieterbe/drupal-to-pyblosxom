@@ -20,12 +20,13 @@
 	// all the other deps are being dragged in for the url/email address 
 	// "expansion to real html links", which btw would be more appropriate
 	// as an output filter in pyblosxom (like it is in drupal). oh well..
+	// this will also cause "standalone" html characters to be replaced by entity references
 	include_once('drupalcode/common.inc');
 	include_once('drupalcode/bootstrap.inc');
 	include_once('drupalcode/unicode.inc');
 	include_once('drupalcode/filter.module');
 	$text = str_replace(array("\r\n", "\r"), "\n", $text);
-	$text = _filter_autop($text); // adds <br/>'s and <p>..</p> where appropriate
-	$text = _filter_url($text, -1); // expands urls/email address into real links
+	$text = _filter_autop($text); // adds <br/>'s and <p>..</p> where appropriate.  patched to bypass <code>..</code>
+	$text = _filter_url($text, -1); // expands urls/email address into real links. not patched, sorry. clean up yourself
 	echo ($text);
 ?>
