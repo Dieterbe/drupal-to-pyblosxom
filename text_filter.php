@@ -28,5 +28,10 @@
 	$text = str_replace(array("\r\n", "\r"), "\n", $text);
 	$text = _filter_autop($text); // adds <br/>'s and <p>..</p> where appropriate.  patched to bypass <code>..</code>
 	$text = _filter_url($text, -1); // expands urls/email address into real links. not patched, sorry. clean up yourself
+	// drupal allows input like this: '<p>check this code:</p><code>myscript <foo></code>' which is wrong and ugly (not valid html input, requires ugly parsing to filter out)
+	// in pyblosxom we use a proper CDATA section between code tags, so we must do some ugly conversion here using regex.
+	// This might not work in special (<a class="<code>">, <code lang="<code>"> ...) cases
+	// but you need to review the output of d2pb manually anyway.
+	$text = preg_replace(array('/<code(.*?)>/','#<\/code>#'), array('<code$1><![CDATA[',']]></code>'),$text);
 	echo ($text);
 ?>
