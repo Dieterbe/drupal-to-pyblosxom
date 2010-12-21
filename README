@@ -6,9 +6,12 @@
 
 == INTRO ==
 This assumes you run drupal on mysql
-converts:
-posts, with:
-	* tags for tags.py plugin
+converts drupal nodes:
+* type 'blog'                      -> 'entries' directory
+* other (in my case always 'page') -> 'static' directory, no recommendation for specific pyblosxom plugin
+
+per node some specific things are processed:
+	* tags in a tags.py plugin compatible format
 	* publish date for Tim Gray's pymetatime plugin)
 	* breakpoints ('<!--break-->') are left intact,
 	you can use the readmore.py plugin;
