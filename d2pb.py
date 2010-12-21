@@ -31,14 +31,13 @@ def main():
 		# I don't think pyblosxom can have different teaser per item, so we only use the full body
 		# I use tagadelic with fixed tags.  we ignore tag weights and assocations between tags
 		# Embedding php code ('<?php ... ?>' or '<% ... %>') like what drupal allows obviously won't work very well. Luckily I never used that feature
-		# status 1 = published, 0 = not published
+		# status 1 = published, 0 = not published, i haven't encountered others
 		query = "SELECT node.nid, url_alias.dst, node.title, node.created, node.changed, node_revisions.body, GROUP_CONCAT(term_data.name), node.status, type \
 			 FROM node \
 			 LEFT JOIN url_alias ON url_alias.src = CONCAT ('node/', node.nid) \
 			 JOIN node_revisions on node_revisions.nid = node.nid \
 			 LEFT JOIN term_node ON term_node.nid = node.nid \
 			 LEFT JOIN term_data ON term_data.tid = term_node.tid \
-			 WHERE status = 1 OR status = 0\
 			 GROUP BY node.nid \
 			 ORDER BY CREATED ASC"
 		cursor.execute(query)
