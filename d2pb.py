@@ -5,7 +5,7 @@ import MySQLdb
 import subprocess
 import time
 
-def main():
+def start():
 	p = optparse.OptionParser()
 	p.add_option('--host', '-H', default="localhost")
 	p.add_option('--user', '-u')
@@ -26,6 +26,9 @@ def main():
 	except Exception, e:
 		sys.stderr.write ("Could not connect to database\n")
 		os._exit(2)
+	return cursor, options
+
+def main(cursor, options):
 	try:
 		# I don't have multiple revisions per node in drupal
 		# I don't think pyblosxom can have different teaser per item, so we only use the full body
@@ -81,11 +84,55 @@ def main():
 		except Exception, e:
 			sys.stderr.write ("Cannot write to %s:\n%s\n" % (file_path,str(e)))
 			os._exit(2)
+def report(cursor, options):
+	print "=== Report =="
+	print "Please check if these numbers make sense!"
+
+	print "== Drupal =="
+	cursor.execute("SELECT COUNT(*) FROM node WHERE status = 1 and type = 'blog'")
+	pub =  cursor.fetchone()[0]
+	cursor.execute("SELECT COUNT(*) FROM node WHERE status = 1 and type = 'page'")
+	pagepub = cursor.fetchone()[0]
+	cursor.execute("SELECT COUNT(*) FROM node WHERE status = 0 and type = 'blog'")
+	unpub = cursor.fetchone()[0]
+	cursor.execute("SELECT COUNT(*) FROM node WHERE status = 0 and type = 'page'")
+	pageunpub = cursor.fetchone()[0]
+	cursor.execute("SELECT COUNT(*) FROM node")
+	total = cursor.fetchone()[0]
+	cursor.execute("SELECT COUNT(*) FROM comments")
+	comments = cursor.fetchone()[0]
+
+	print "nodes published blog: %i"   % pub
+	print "nodes unpublished blog: %i" % unpub
+	print "nodes published page: %i"   % pagepub
+	print "nodes unpublished page: %i" % pageunpub
+	print "nodes all: %i" % total
+	total_ours = pub + unpub + pagepub + pageunpub
+	if total != total_ours:
+		print "WARNING: total amount of nodes (%i) doesn't match our number of recognized entries (%i)."
+		print "This means you have a nodes of a status other then 0/1 or type other then blog/page, which this script does not support"
+	print "comments: %i" % comments
+
+	print "== Pyblosxom =="
+	import glob
+	pub         = len(glob.glob1(os.path.join(options.blog,'entries'),"*.txt"))
+	unpub       = len(glob.glob1(os.path.join(options.blog,'entries'),"*.txt.unpublished"))
+	staticpub   = len(glob.glob1(os.path.join(options.blog,'static'),"*.txt"))
+	staticunpub = len(glob.glob1(os.path.join(options.blog,'static'),"*.txt.unpublished"))
+	print "entries published: %i"   % pub
+	print "entries unpublished: %i" % unpub
+	print "statics published: %i"   % staticpub
+	print "statics unpublished: %i" % staticunpub
+	print "entries+statics all: %i" % (pub + unpub + staticpub + staticunpub)
+	print "comments: TODO"
+
 # comments : comments.cid, comments.nid, comments.uid, comments.subject, comments.comment, comments.timestamp 	status 	format 	thread 	users 	name 	mail 	homepage
 
 if __name__ == '__main__':
 	try:
-		main()
+		cursor, options = start()
+		main(cursor, options)
+		report(cursor, options)
 	except Exception, e:
 		import traceback
 		sys.stderr.write ("%s\n" % str(e))
