@@ -32,10 +32,11 @@ def main():
 		# I use tagadelic with fixed tags.  we ignore tag weights and assocations between tags
 		# Embedding php code ('<?php ... ?>' or '<% ... %>') like what drupal allows obviously won't work very well. Luckily I never used that feature
 		query = "SELECT node.nid, url_alias.dst, node.title, node.created, node.changed, node_revisions.body, GROUP_CONCAT(term_data.name) \
-		         FROM node JOIN url_alias ON url_alias.src = CONCAT ('node/', node.nid) \
+			 FROM node \
+			 LEFT JOIN url_alias ON url_alias.src = CONCAT ('node/', node.nid) \
 			 JOIN node_revisions on node_revisions.nid = node.nid \
-			 JOIN term_node ON term_node.nid = node.nid \
-			 JOIN term_data ON term_data.tid = term_node.tid \
+			 LEFT JOIN term_node ON term_node.nid = node.nid \
+			 LEFT JOIN term_data ON term_data.tid = term_node.tid \
 			 WHERE type = 'blog' AND status = 1 \
 			 GROUP BY node.nid \
 			 ORDER BY CREATED ASC"
@@ -50,8 +51,7 @@ def main():
 		else:
 			# first make the string lowercase and replace all useful special chars to something more appropriate:
 			filename = row[2].lower().replace(' ','_').replace ('&','and')
-			# now there could still be special characters we don't want ($, ^, ...), just remove them. (accented characters should probably become non-accented)
-			# TODO. (i have aliases for all my nodes, so you're on your own)
+			# TODO: there could still be special characters we don't want ($, ^, ...), just remove them. (accented characters should probably become non-accented) (I don't need this in my case)
 		try:
 			file_path = os.path.join(options.blog,'entries',filename+'.txt')
 			print ("\tWriting to %s" % file_path)
@@ -59,7 +59,8 @@ def main():
 			file.write('%s\n' % row[2])
 			file.write('# pubdate %s\n' % time.strftime("%Y-%m-%d", time.localtime(row[3])))
 			file.write('# pubtime %s\n' % time.strftime("%H:%M:%S", time.localtime(row[3])))
-			file.write('# tags %s\n' % row[6])
+			if row[6]:
+				file.write('# tags %s\n' % row[6])
 			# I've never used input format 2 (which allows almost no html) and format 1 is like format 3, but with stricter html tag allowance.
 			# I just assume we use format 3, this should be good enough.
 			# Perform drupalesque text processing
