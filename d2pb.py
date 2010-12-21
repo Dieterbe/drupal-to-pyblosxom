@@ -31,13 +31,14 @@ def main():
 		# I don't think pyblosxom can have different teaser per item, so we only use the full body
 		# I use tagadelic with fixed tags.  we ignore tag weights and assocations between tags
 		# Embedding php code ('<?php ... ?>' or '<% ... %>') like what drupal allows obviously won't work very well. Luckily I never used that feature
-		query = "SELECT node.nid, url_alias.dst, node.title, node.created, node.changed, node_revisions.body, GROUP_CONCAT(term_data.name) \
+		# status 1 = published, 0 = not published
+		query = "SELECT node.nid, url_alias.dst, node.title, node.created, node.changed, node_revisions.body, GROUP_CONCAT(term_data.name), node.status \
 			 FROM node \
 			 LEFT JOIN url_alias ON url_alias.src = CONCAT ('node/', node.nid) \
 			 JOIN node_revisions on node_revisions.nid = node.nid \
 			 LEFT JOIN term_node ON term_node.nid = node.nid \
 			 LEFT JOIN term_data ON term_data.tid = term_node.tid \
-			 WHERE type = 'blog' AND status = 1 \
+			 WHERE type = 'blog' AND (status = 1 OR status = 0)\
 			 GROUP BY node.nid \
 			 ORDER BY CREATED ASC"
 		cursor.execute(query)
@@ -52,8 +53,10 @@ def main():
 			# first make the string lowercase and replace all useful special chars to something more appropriate:
 			filename = row[2].lower().replace(' ','_').replace ('&','and')
 			# TODO: there could still be special characters we don't want ($, ^, ...), just remove them. (accented characters should probably become non-accented) (I don't need this in my case)
+		file_path = os.path.join(options.blog,'entries',filename+'.txt')
+		if not row[7]:
+			file_path += '.unpublished'
 		try:
-			file_path = os.path.join(options.blog,'entries',filename+'.txt')
 			print ("\tWriting to %s" % file_path)
 			file = open(file_path, 'w')
 			file.write('%s\n' % row[2])
