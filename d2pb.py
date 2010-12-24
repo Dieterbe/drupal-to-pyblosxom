@@ -67,7 +67,6 @@ def main(cursor, options):
 					os.mkdir(os.path.join(options.blog,'static'))
 				except OSError, e:
 					pass
-			print ("\tWriting to %s" % file_path)
 			file = open(file_path, 'w')
 			file.write('%s\n' % row[2])
 			file.write('# pubdate %s\n' % time.strftime("%Y-%m-%d", time.localtime(row[3])))
