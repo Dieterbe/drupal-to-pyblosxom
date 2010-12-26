@@ -18,7 +18,10 @@ per node some specific things are processed:
 	just note that drupal can automatically break, pyblosxom doesn't,
 	so for posts without breakpoints, you might want to insert
 	breakpoints manually.
-	* comments TODO
+	* comments. note:
+		* manual review needed, because all html tags currently accepted
+		* PB doesn't support comment threading and comment titles, though the data is exported
+		* Comments with uid 1 (blog owner) have no url/email set, just nick.  PB should support automatically rendering the correct url
 	* images TODO
 	* source code TODO
 

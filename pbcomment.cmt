@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<item>
+<description>$comment</description>
+<parent>$parent</parent>
+<secretToken></secretToken>
+<link>$author_url</link>
+<date>$date</date>
+<w3cdate>$w3cdate</w3cdate>
+<ipaddress>$ip</ipaddress>
+<pubDate>$pubdate</pubDate>
+<title>$title</title>
+<author>$author</author>
+<submit>Submit</submit>
+<source></source>
+<email>$author_email</email>
+</item>
