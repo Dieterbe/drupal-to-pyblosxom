@@ -22,7 +22,6 @@ per node some specific things are processed:
 		* manual review needed, because all html tags currently accepted
 		* PB doesn't support comment threading and comment titles, though the data is exported
 		* Comments with uid 1 (blog owner) have no url/email set, just nick.  PB should support automatically rendering the correct url
-	* images TODO
 	* source code: exported for syntaxhilight.py plugin (which uses pygments).  note:
 		* most of the 'lang' attributes map perfectly ('php', 'bash', 'sql', etc), but for php embedded in html, you need to manually update to html+php
 		* also, pygments is fairly strict and we can't control options like startinline (just the lexer name), so you might need to manually wrap your php code
@@ -31,6 +30,7 @@ ignores:
 	* trackbacks (is there a sane way to do trackbacks anyway?
 	maybe with mollom/akismet/..? if so we could add this feature)
 	* viewcount (i use google analytics)
+	* all static content (images etc) (you should copy that data yourself and ultimately publish it on the same - or a similar - url. sed is your friend)
 
 == HOWTO ==
 
