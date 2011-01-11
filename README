@@ -18,6 +18,8 @@ per node some specific things are processed:
 	just note that drupal can automatically break, pyblosxom doesn't,
 	so for posts without breakpoints, you might want to insert
 	breakpoints manually.
+	* GUID is stored in guid.py compatible metadata if you specify the base_url of the drupal blog with -B
+	(if unsure about the base_url, look at your guid's in your drupal feed)
 	* comments. note:
 		* manual review needed, because all html tags currently accepted
 		* PB doesn't support comment threading and comment titles, though the data is exported

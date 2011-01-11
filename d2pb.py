@@ -12,6 +12,7 @@ def start():
 	p.add_option('--passw', '-p', default="")
 	p.add_option('--db', '-d')
 	p.add_option('--blog', '-b')
+	p.add_option('--base', '-B', default="")
 	options, arguments = p.parse_args()
 	if not options.user or not options.blog or not options.db:
 		p.print_help()
@@ -78,6 +79,8 @@ def main(cursor, options):
 			file.write('# pubtime %s\n' % time.strftime("%H:%M:%S", time.localtime(row[3])))
 			if row[6]:
 				file.write('# tags %s\n' % row[6])
+			if options.base:
+				file.write("# guid %i at %s\n" % (row[0], options.base))
 			# I've never used input format 2 (which allows almost no html) and format 1 is like format 3, but with stricter html tag allowance.
 			# I just assume we use format 3, this should be good enough.
 			# Perform drupalesque text processing
