@@ -140,7 +140,7 @@ def main(cursor, options):
 		print "Processing entry: %s" % commentstr
 		node = nodecodename (row[0], row[1])
 		comment = {}
-		#comment['title'] = row[1]} # this is comments.py default behavior. but why? why store the title of the node again in the comment (and not show it..)
+		#comment['title'] = row[1] # this is comments.py default behavior. but why? why store the title of the node again in the comment (and not show it..)
 		comment['title'] = subject # this is what I do; it doesn't get shown usually, but at least it doesn't get lost. afaik it's the best i can do
 		comment['parent'] = node # this is comments.py default behavior, but this field never seems to be used. and there is no support for anything else anyway
 		# so, for the case comments.py will ever support threaded comments, this should help (key will always be set due to sorting unless db incosistency by drupal)
