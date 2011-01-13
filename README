@@ -41,3 +41,4 @@ DELETE FROM sessions WHERE timestamp < unix_timestamp(now()) -1000
 after this cleanup, you might want to optimize your tables aswell
 * backup your database and/or work on a copy
 * run `d2pb.py --help` for usage instructions
+* in the `checkscripts` directory you'll find various scripts that help you check the accuracy of the conversion
