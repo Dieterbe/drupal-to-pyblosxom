@@ -130,6 +130,7 @@ def main(cursor, options):
 		sys.stderr.write("Could not execute query: %s:\n%s\n" % (query, str(e)))
 	namecache = {} # used to lookup filenames of earlier comments (useful for threaded comments)
 	from xml.sax.saxutils import escape
+	import string
 	for row in cursor:
 		subject = row[6].replace("\n", ' ') # not sure why, but my drupal comment subjects allowed newlines, it seems.
 		commentstr = "%s:%s" % (row[1], subject)
@@ -152,7 +153,7 @@ def main(cursor, options):
 		# but if you had some quality control in drupal (i.e. no spammers), i doubt this will be much work
 		p = subprocess.Popen(['./text_filter.php'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 		commenthtml = p.communicate(row[7])[0]
-		comment['comment'] = escape(commenthtml)
+		comment['comment'] = commenthtml
 		comment['author'] = row[11]
 		comment['author_url'] = row[13]
 		comment['author_email'] = row[12]
@@ -162,7 +163,23 @@ def main(cursor, options):
 		comment['pubdate'] = "%.2f" % row[9] # unix timestamp (GMT) with centi-second resolution, like 1293206979.53 (drupal is second-resolution)
 		filename = '%s-%s.cmt' % (node, comment['pubdate'])
 		namecache[row[2]] = filename
-
+		for el in comment.keys():
+			data = ''
+			# comment can contain <![CDATA[ ... ]]> which obviously should not get escaped
+			chunks = string.split (comment[el],'<![CDATA[')
+			in_code = False
+			for chunk in chunks:
+				if not in_code:
+					data += escape(chunk)
+					in_code = True
+				else:
+					subchunk = string.split (chunk, ']]>')
+					data += '<![CDATA[' + subchunk[0] + ']]>'
+					in_code = False
+					if subchunk[1]:
+						data += escape(subchunk[1])
+						in_code = True
+			comment[el] = data
 		comment_str = replace_words(comment_tpl, comment)
 		file_path = os.path.join(options.blog,'entries','comments',filename)
 		fout = open(file_path, 'w')
