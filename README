@@ -8,7 +8,7 @@
 This assumes you run drupal on mysql
 converts drupal nodes:
 * type 'blog'                      -> 'entries' directory
-* other (in my case always 'page') -> 'static' directory, no recommendation for specific pyblosxom plugin
+* other (in my case always 'page') -> 'static' directory, for consumption with PB 'pages' plugin
 
 per node some specific things are processed:
 	* tags in a tags.py plugin compatible format

@@ -5,12 +5,14 @@ dir=$1
 url=$2
 
 echo "If you don't see warnings/errors, you can assume everything is ok, except for the cases where you're asked to check something manually"
+echo "Also, we obviously can't check the quality of rendered pages. do that yourself"
 
 # count node entries on FS
 
 entries_fs=$(ls $dir/entries/*.txt | wc -l)
 echo "Entries on FS: $entries_fs (compare this with what d2py told you)"
-
+entries_static_fs=$(ls $dir/static/*.txt | wc -l)
+echo "Static entries on FS: $entries_static_fs (compare this with what d2py told you)"
 
 # compare count of node entries from FS with wget
 
@@ -20,7 +22,7 @@ echo "Entries on FS: $entries_fs (compare this with what d2py told you)"
 entries_wget=$(wget --quiet $url -O - | grep -c '<h3><a name=".*</a></h3>')
 if [ "$entries_wget" = "$entries_fs" ]
 then
-	echo "OK, also found $entries_wget node entries on the webpage.."
+	echo "OK, also found $entries_wget non-page node entries on the webpage.."
 else
 	echo "Warning: mismatch between entries on fs ($entries_fs) and found on website ($entries_wget)"
 fi
@@ -40,30 +42,57 @@ else
 fi
 
 comments_fs=$(ls $dir/entries/comments/*.cmt | wc -l)
-echo "Comments on FS: $comments_fs (compare this with what d2py told you)"
-total=0
+echo "Blog Comments on FS: $comments_fs (compare this with what d2py told you)"
+comments_fs_page=$(ls $dir/entries/comments/pages/*.cmt | wc -l)
+echo "Page Comments on FS: $comments_fs_page (compare this with what d2py told you)"
+total_blog=0
+total_pages=0
 nodes_with_comments=()
+pages_with_comments=()
 echo "Entries with comments on FS (check this manually, if you want. this script only compares the total, which should be reasonable enough):"
 echo "We'll also compare this number with what we see on the webpage"
-for entry in $dir/entries/*.txt;
-do
+function compare_node_comments () {
+	entry=$1
+	t=$2
 	node=$(basename $entry .txt)
-	num=$(ls $dir/entries/comments/$node-* 2>/dev/null | wc -l)
-	total=$((total+num))
-	[ $num -ne 0 ] && nodes_with_comments+=($node)
+	[ "$t" = blog ] && local dir=$dir/entries/comments
+	[ "$t" = page ] && local dir=$dir/entries/comments/pages
+	num=$(ls $dir/$node-* 2>/dev/null | wc -l)
+	if [ "$t" = blog ]
+	then
+		total_blog=$((total_blog+num))
+		[ $num -ne 0 ] && nodes_with_comments+=($node)
+	fi
+	if [ "$t" = page ]
+	then
+		total_pages=$((total_pages+num))
+		[ $num -ne 0 ] && pages_with_comments+=($node)
+	fi
 	echo "$node: $num  "
 	# compare with webpage:
-	num_wget=$(wget --quiet $url/$node.html -O - | grep -c '<div class="blosxomComment">')
+	[ "$t" = blog ] && local url=$url/$node.html
+	[ "$t" = page ] && local url=$url/pages/$node.html
+	num_wget=$(wget --quiet $url -O - | grep -c '<div class="blosxomComment">')
 	if [ $num -eq $num_wget ]
 	then
 		echo "OK, same on webpage"
 	else
 		echo "WARNING: on webpage: $num_wget"
 	fi
+}
+for entry in $dir/entries/*.txt
+do
+	compare_node_comments $entry blog
 done
-if [ $comments_fs -ne $total ]
+for entry in $dir/static/*.txt
+do
+	compare_node_comments $entry page
+done
+if [ $comments_fs -eq $total_blog ]
 then
-	echo "Warning: mismatch between everything on FS matching $dir/entries/comments/*.cmt ($comments_fs) and the files in there with a recognized node as basename ($total)"
+	echo "OK, sum of all blog comments with recognized nodename matches $total_blog"
+else
+	echo "Warning: mismatch between everything on FS matching $dir/entries/comments/*.cmt ($comments_fs) and the files in there with a recognized blog node as basename ($total_blog)"
 	regex=
 	for i in "${nodes_with_comments[@]}"
 	do
@@ -72,10 +101,24 @@ then
 	done
 	regex="^\($regex\)-1.........\.00.cmt$"
 	echo "Here are the comment files without recognized node codename in them:"
-	echo "These might be all comments for static pages, this script doesn't properly support those yet"
-	ls $dir/entries/comments/ | grep -v $regex
-else
-	echo "OK, sum of all comments with recognized nodename matches $total"
+	echo "These are probably for unpublished pages, if not: you just found a bug in drupal2pyblosxom!"
+	ls $dir/entries/comments/ | grep -v $regex | grep -v ^pages$
 fi
 
+if [ $comments_fs_page -eq $total_pages ]
+then
+	echo "OK, sum of all page comments with recognized nodename matches $total_pages"
+else
+	echo "Warning: mismatch between everything on FS matching $dir/entries/comments/pages/*.cmt ($comments_fs_page) and the files in there with a recognized page node as basename ($total_pages)"
+	regex=
+	for i in "${pages_with_comments[@]}"
+	do
+		[ -n "$regex" ] && regex="$regex\|"
+		regex="${regex}$i"
+	done
+	regex="^\($regex\)-1.........\.00.cmt$"
+	echo "Here are the comment files without recognized node codename in them:"
+	echo "These are probably for unpublished pages, if not: you just found a bug in drupal2pyblosxom!"
+	ls $dir/entries/comments/pages | grep -v $regex
+fi
 rm /tmp/d2p*

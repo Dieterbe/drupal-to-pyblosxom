@@ -95,6 +95,7 @@ def main(cursor, options):
 	import re
 	try:
 		os.mkdir(os.path.join(options.blog,'entries', 'comments'))
+		os.mkdir(os.path.join(options.blog,'entries', 'comments', 'pages'))
 	except OSError, e:
 		pass
 
@@ -117,7 +118,7 @@ def main(cursor, options):
 		# all my comments are in format 1
 		# we assume there are no multiple comments for the same node on the same second (~same filename)
 		# we also assume that you only want to keep published comments, unpublished comments are ignored
-		query = "SELECT url_alias.dst, node.title, comments.cid, comments.pid, \
+		query = "SELECT url_alias.dst, node.title, node.type, comments.cid, comments.pid, \
 			 comments.nid, comments.uid, comments.subject, comments.comment, \
 			 comments.hostname, comments.timestamp, comments.status, comments.name, \
 			 comments.mail, comments.homepage \
@@ -132,11 +133,11 @@ def main(cursor, options):
 	from xml.sax.saxutils import escape
 	import string
 	for row in cursor:
-		subject = row[6].replace("\n", ' ') # not sure why, but my drupal comment subjects allowed newlines, it seems.
+		subject = row[7].replace("\n", ' ') # not sure why, but my drupal comment subjects allowed newlines, it seems.
 		commentstr = "%s:%s" % (row[1], subject)
-		if row[10] >1:
-			print "WARNING: Unrecognized comment status %i for comment %s" % (row[10], commentstr)
-		if row[10] >0:
+		if row[11] >1:
+			print "WARNING: Unrecognized comment status %i for comment %s" % (row[11], commentstr)
+		if row[11] >0:
 			continue
 		print "Processing entry: %s" % commentstr
 		node = nodecodename (row[0], row[1])
@@ -145,24 +146,24 @@ def main(cursor, options):
 		comment['title'] = subject # this is what I do; it doesn't get shown usually, but at least it doesn't get lost. afaik it's the best i can do
 		comment['parent'] = node # this is comments.py default behavior, but this field never seems to be used. and there is no support for anything else anyway
 		# so, for the case comments.py will ever support threaded comments, this should help (key will always be set due to sorting unless db incosistency by drupal)
-		if row[3]:
-			comment['parent'] = namecache[row[3]]
+		if row[4]:
+			comment['parent'] = namecache[row[4]]
 		# all my comments are in input format 1.  since i wrote the code for input format 3 (for nodes), i won't bother to do it for format 1
 		# the difference is that 3 allows html tags, whereas 1 is just a select set of tags (<a> <em> <strong> <cite> <code> <ul> <ol> <li> <dl> <dt> <dd>)
 		# so you'll need to review comments manually to see if any inappropriate tags need to be left out.
 		# but if you had some quality control in drupal (i.e. no spammers), i doubt this will be much work
 		p = subprocess.Popen(['./text_filter.php'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-		commenthtml = p.communicate(row[7])[0]
+		commenthtml = p.communicate(row[8])[0]
 		comment['comment'] = commenthtml
-		comment['author'] = row[11]
-		comment['author_url'] = row[13]
-		comment['author_email'] = row[12]
-		comment['ip'] = row[8]
-		comment['date'] = time.strftime('%a %d %b %Y', time.gmtime(row[9])) # GMT date, something like: Fri 24 Dec 2010
-		comment['w3cdate'] = time.strftime ('%Y-%m-%dT%H:%M:%SZ', time.gmtime(row[9])) # GMT datetime like this: 2010-12-24T16:09:39Z
-		comment['pubdate'] = "%.2f" % row[9] # unix timestamp (GMT) with centi-second resolution, like 1293206979.53 (drupal is second-resolution)
+		comment['author'] = row[12]
+		comment['author_url'] = row[14]
+		comment['author_email'] = row[13]
+		comment['ip'] = row[9]
+		comment['date'] = time.strftime('%a %d %b %Y', time.gmtime(row[10])) # GMT date, something like: Fri 24 Dec 2010
+		comment['w3cdate'] = time.strftime ('%Y-%m-%dT%H:%M:%SZ', time.gmtime(row[10])) # GMT datetime like this: 2010-12-24T16:09:39Z
+		comment['pubdate'] = "%.2f" % row[10] # unix timestamp (GMT) with centi-second resolution, like 1293206979.53 (drupal is second-resolution)
 		filename = '%s-%s.cmt' % (node, comment['pubdate'])
-		namecache[row[2]] = filename
+		namecache[row[3]] = filename
 		for el in comment.keys():
 			data = ''
 			# comment can contain <![CDATA[ ... ]]> which obviously should not get escaped
@@ -181,7 +182,10 @@ def main(cursor, options):
 						in_code = True
 			comment[el] = data
 		comment_str = replace_words(comment_tpl, comment)
-		file_path = os.path.join(options.blog,'entries','comments',filename)
+		if row[2] == 'blog':
+			file_path = os.path.join(options.blog,'entries','comments',filename)
+		else:
+			file_path = os.path.join(options.blog,'entries','comments','pages',filename)
 		fout = open(file_path, 'w')
 		fout.write(comment_str)
 		fout.close()
@@ -226,18 +230,21 @@ def report(cursor, options):
 
 	print "== Pyblosxom =="
 	import glob
-	pbpub         = len(glob.glob1(os.path.join(options.blog,'entries'),"*.txt"))
-	pbunpub       = len(glob.glob1(os.path.join(options.blog,'entries'),"*.txt.unpublished"))
-	pbstaticpub   = len(glob.glob1(os.path.join(options.blog,'static'),"*.txt"))
-	pbstaticunpub = len(glob.glob1(os.path.join(options.blog,'static'),"*.txt.unpublished"))
-	pbcomments    = len(glob.glob1(os.path.join(options.blog,'entries', 'comments'),"*.cmt"))
+	pbpub          = len(glob.glob1(os.path.join(options.blog,'entries'),"*.txt"))
+	pbunpub        = len(glob.glob1(os.path.join(options.blog,'entries'),"*.txt.unpublished"))
+	pbstaticpub    = len(glob.glob1(os.path.join(options.blog,'static'),"*.txt"))
+	pbstaticunpub  = len(glob.glob1(os.path.join(options.blog,'static'),"*.txt.unpublished"))
+	pbcomments     = len(glob.glob1(os.path.join(options.blog,'entries', 'comments'),"*.cmt"))
+	pbcommentspage = len(glob.glob1(os.path.join(options.blog,'entries', 'comments', 'pages'),"*.cmt"))
 	print "entries published: %i"   % pbpub
 	print "entries unpublished: %i" % pbunpub
 	print "statics published: %i"   % pbstaticpub
 	print "statics unpublished: %i" % pbstaticunpub
 	print "entries+statics all: %i" % (pbpub + pbunpub + pbstaticpub + pbstaticunpub)
-	print "comments: %i"            % pbcomments
-	if pbcomments != commentspub:
+	print "comments entries: %i"    % pbcomments
+	print "comments pages: %i"      % pbcommentspage
+	print "comments total: %i"      % (pbcomments + pbcommentspage)
+	if pbcomments + pbcommentspage != commentspub:
 		print "WARNING: pb export misses some comments"
 	if pbpub != pub:
 		print "WARNING: pb export misses some published blog entries"
