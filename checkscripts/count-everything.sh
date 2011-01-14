@@ -67,14 +67,13 @@ then
 	regex=
 	for i in "${nodes_with_comments[@]}"
 	do
-		[ -n "$regex" ] && regex="$regex|"
+		[ -n "$regex" ] && regex="$regex\|"
 		regex="${regex}$i"
 	done
-	regex="^($regex)-1.........\.00.cmt$"
+	regex="^\($regex\)-1.........\.00.cmt$"
 	echo "Here are the comment files without recognized node codename in them:"
 	echo "These might be all comments for static pages, this script doesn't properly support those yet"
-	echo $regex
-	ls $dir/entries/comments/ | egrep -v $regex
+	ls $dir/entries/comments/ | grep -v $regex
 else
 	echo "OK, sum of all comments with recognized nodename matches $total"
 fi
